@@ -26,15 +26,21 @@ async def on_message(message):
     # Move messages from the music bot (FlaviBot in this case)
     if message.author.bot and message.author.name == 'FlaviBot':
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Moving FlaviBot message: {message.content[:100]}...")
+        print(f"[{timestamp}] Moving FlaviBot message...")
         try:
             # Get music-request channel
             music_request_channel = bot.get_channel(music_request_channel_id)
             if music_request_channel:
-                # Send message content to music-request channel
-                content = message.content if message.content else "*Empty message*"
-                await music_request_channel.send(content)
-                print(f"[{timestamp}] Moved FlaviBot message to #{music_request_channel.name}")
+                # Send message with content and/or embeds
+                if message.embeds:
+                    # Send embeds
+                    for embed in message.embeds:
+                        await music_request_channel.send(embed=embed)
+                    print(f"[{timestamp}] Moved FlaviBot message with {len(message.embeds)} embed(s) to #{music_request_channel.name}")
+                elif message.content:
+                    # Send text content
+                    await music_request_channel.send(message.content)
+                    print(f"[{timestamp}] Moved FlaviBot message to #{music_request_channel.name}")
             
             await message.delete()
             print(f"[{timestamp}] Successfully moved message {message.id}")
