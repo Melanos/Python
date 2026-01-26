@@ -50,9 +50,11 @@ bot.remove_command('help')
 async def delete_messages(ctx, amount: int = 10):
     """Delete a specified number of recent messages. Usage: !delete 10"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    notif_channel = bot.get_channel(1464696209309433876)
     
     if amount < 1 or amount > 100:
-        await ctx.send("Please specify a number between 1 and 100.", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Please specify a number between 1 and 100.")
         return
     
     try:
@@ -62,22 +64,28 @@ async def delete_messages(ctx, amount: int = 10):
         # Delete the specified number of messages
         deleted = await ctx.channel.purge(limit=amount)
         
-        # Send confirmation that will auto-delete after 5 seconds
-        confirmation = await ctx.send(f"🗑️ Deleted {len(deleted)} message(s).", delete_after=5)
+        # Send confirmation to notifications channel
+        if notif_channel:
+            await notif_channel.send(f"🗑️ {ctx.author.mention} deleted {len(deleted)} message(s) in {ctx.channel.mention}.")
         print(f"[{timestamp}] Deleted {len(deleted)} messages in #{ctx.channel.name} by {ctx.author}")
     except discord.Forbidden:
-        await ctx.send("I don't have permission to delete messages!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - I don't have permission to delete messages!")
         print(f"[{timestamp}] ERROR: Missing permissions to delete messages")
     except Exception as e:
-        await ctx.send(f"Error: {e}", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Error: {e}")
         print(f"[{timestamp}] ERROR: {e}")
 
 @delete_messages.error
 async def delete_error(ctx, error):
+    notif_channel = bot.get_channel(1464696209309433876)
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permission to use this command!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - You don't have permission to use this command!")
     elif isinstance(error, commands.BadArgument):
-        await ctx.send("Please provide a valid number! Usage: `!delete 10`", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Please provide a valid number! Usage: `!delete 10`")
 
 @bot.command(name='commands', aliases=['help', 'cmds'])
 async def help_command(ctx):
@@ -121,16 +129,21 @@ async def help_command(ctx):
         inline=False
     )
     embed.set_footer(text="Bot created for server moderation")
-    await ctx.send(embed=embed)
+    notif_channel = bot.get_channel(1464696209309433876)
+    if notif_channel:
+        await notif_channel.send(embed=embed)
+        await ctx.message.delete()
 
 @bot.command(name='clear')
 @commands.has_permissions(manage_messages=True)
 async def clear_user(ctx, member: discord.Member, amount: int = 10):
     """Delete messages from a specific user. Usage: !clear @user 20"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    notif_channel = bot.get_channel(1464696209309433876)
     
     if amount < 1 or amount > 100:
-        await ctx.send("Please specify a number between 1 and 100.", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Please specify a number between 1 and 100.")
         return
     
     try:
@@ -142,100 +155,131 @@ async def clear_user(ctx, member: discord.Member, amount: int = 10):
         # Delete messages from the specific user
         deleted = await ctx.channel.purge(limit=amount, check=check)
         
-        await ctx.send(f"🗑️ Deleted {len(deleted)} message(s) from {member.mention}.", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"🗑️ {ctx.author.mention} deleted {len(deleted)} message(s) from {member.mention} in {ctx.channel.mention}.")
         print(f"[{timestamp}] Deleted {len(deleted)} messages from {member} in #{ctx.channel.name} by {ctx.author}")
     except discord.Forbidden:
-        await ctx.send("I don't have permission to delete messages!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - I don't have permission to delete messages!")
     except Exception as e:
-        await ctx.send(f"Error: {e}", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Error: {e}")
         print(f"[{timestamp}] ERROR: {e}")
 
 @clear_user.error
 async def clear_error(ctx, error):
+    notif_channel = bot.get_channel(1464696209309433876)
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permission to use this command!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - You don't have permission to use this command!")
     elif isinstance(error, commands.MemberNotFound):
-        await ctx.send("User not found! Usage: `!clear @user 10`", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - User not found! Usage: `!clear @user 10`")
     elif isinstance(error, commands.BadArgument):
-        await ctx.send("Invalid arguments! Usage: `!clear @user 10`", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Invalid arguments! Usage: `!clear @user 10`")
 
 @bot.command(name='slowmode')
 @commands.has_permissions(manage_channels=True)
 async def slowmode(ctx, seconds: int = 0):
     """Set channel slowmode. Usage: !slowmode 5"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    notif_channel = bot.get_channel(1464696209309433876)
     
     if seconds < 0 or seconds > 21600:
-        await ctx.send("Slowmode must be between 0 and 21600 seconds (6 hours).", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Slowmode must be between 0 and 21600 seconds (6 hours).")
         return
     
     try:
+        await ctx.message.delete()
         await ctx.channel.edit(slowmode_delay=seconds)
         
         if seconds == 0:
-            await ctx.send("⏱️ Slowmode disabled.", delete_after=5)
+            if notif_channel:
+                await notif_channel.send(f"⏱️ {ctx.author.mention} disabled slowmode in {ctx.channel.mention}.")
             print(f"[{timestamp}] Slowmode disabled in #{ctx.channel.name} by {ctx.author}")
         else:
-            await ctx.send(f"⏱️ Slowmode set to {seconds} second(s).", delete_after=5)
+            if notif_channel:
+                await notif_channel.send(f"⏱️ {ctx.author.mention} set slowmode to {seconds} second(s) in {ctx.channel.mention}.")
             print(f"[{timestamp}] Slowmode set to {seconds}s in #{ctx.channel.name} by {ctx.author}")
     except discord.Forbidden:
-        await ctx.send("I don't have permission to manage channels!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - I don't have permission to manage channels!")
     except Exception as e:
-        await ctx.send(f"Error: {e}", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Error: {e}")
         print(f"[{timestamp}] ERROR: {e}")
 
 @slowmode.error
 async def slowmode_error(ctx, error):
+    notif_channel = bot.get_channel(1464696209309433876)
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permission to use this command!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - You don't have permission to use this command!")
     elif isinstance(error, commands.BadArgument):
-        await ctx.send("Please provide a valid number! Usage: `!slowmode 5`", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Please provide a valid number! Usage: `!slowmode 5`")
 
 @bot.command(name='lock')
 @commands.has_permissions(manage_channels=True)
 async def lock_channel(ctx):
     """Lock the channel so only mods can send messages"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    notif_channel = bot.get_channel(1464696209309433876)
     
     try:
+        await ctx.message.delete()
         # Deny @everyone from sending messages
         await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=False)
         
-        await ctx.send("🔒 Channel locked. Only moderators can send messages.")
+        if notif_channel:
+            await notif_channel.send(f"🔒 {ctx.author.mention} locked {ctx.channel.mention}. Only moderators can send messages.")
         print(f"[{timestamp}] Channel #{ctx.channel.name} locked by {ctx.author}")
     except discord.Forbidden:
-        await ctx.send("I don't have permission to manage channel permissions!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - I don't have permission to manage channel permissions!")
     except Exception as e:
-        await ctx.send(f"Error: {e}", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Error: {e}")
         print(f"[{timestamp}] ERROR: {e}")
 
 @lock_channel.error
 async def lock_error(ctx, error):
+    notif_channel = bot.get_channel(1464696209309433876)
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permission to use this command!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - You don't have permission to use this command!")
 
 @bot.command(name='unlock')
 @commands.has_permissions(manage_channels=True)
 async def unlock_channel(ctx):
     """Unlock the channel"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    notif_channel = bot.get_channel(1464696209309433876)
     
     try:
+        await ctx.message.delete()
         # Allow @everyone to send messages again
         await ctx.channel.set_permissions(ctx.guild.default_role, send_messages=None)
         
-        await ctx.send("🔓 Channel unlocked. Everyone can send messages again.")
+        if notif_channel:
+            await notif_channel.send(f"🔓 {ctx.author.mention} unlocked {ctx.channel.mention}. Everyone can send messages again.")
         print(f"[{timestamp}] Channel #{ctx.channel.name} unlocked by {ctx.author}")
     except discord.Forbidden:
-        await ctx.send("I don't have permission to manage channel permissions!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - I don't have permission to manage channel permissions!")
     except Exception as e:
-        await ctx.send(f"Error: {e}", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - Error: {e}")
         print(f"[{timestamp}] ERROR: {e}")
 
 @unlock_channel.error
 async def unlock_error(ctx, error):
+    notif_channel = bot.get_channel(1464696209309433876)
     if isinstance(error, commands.MissingPermissions):
-        await ctx.send("You don't have permission to use this command!", delete_after=5)
+        if notif_channel:
+            await notif_channel.send(f"❌ {ctx.author.mention} - You don't have permission to use this command!")
 
 @bot.event
 async def on_message(message):
