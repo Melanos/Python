@@ -80,6 +80,12 @@ async def on_message(message):
         # Skip if already processed via edit event
         if message.id in processed_messages:
             return
+        
+        # IGNORE slash command responses - they never have embeds
+        if message.type == discord.MessageType.chat_input_command:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"[{timestamp}] Ignoring slash command response message")
+            return
             
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] Detected FlaviBot message...")
@@ -92,7 +98,7 @@ async def on_message(message):
                 print(f"[{timestamp}] Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else None}'")
         
         try:
-            # Wait 5 seconds for ALL FlaviBot messages (embeds are added via edits)
+            # Wait 5 seconds for embeds to be added via edit
             import asyncio
             print(f"[{timestamp}] Waiting 5 seconds for embeds to be added...")
             await asyncio.sleep(5)
