@@ -22,45 +22,22 @@ async def on_ready():
 # Store message IDs temporarily to avoid duplicate processing
 processed_messages = set()
 
-# Temporarily disable edit handler to debug
-# @bot.event
-# async def on_message_edit(before, after):
-#     # Music-request channel ID
-#     music_request_channel_id = 1284207105548484780
-#     
-#     # Handle FlaviBot message edits (when embeds are added)
-#     if after.author.bot and after.author.name == 'FlaviBot' and after.id not in processed_messages:
-#         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-#         print(f"[{timestamp}] Detected FlaviBot MESSAGE EDIT...")
-#         print(f"[{timestamp}] Edit details - Content: '{after.content}', Embeds: {len(after.embeds)}, Components: {len(after.components)}")
-#         
-#         # If the edited message now has embeds, move it
-#         if after.embeds or after.content or after.components:
-#             try:
-#                 processed_messages.add(after.id)
-#                 
-#                 # Get music-request channel
-#                 music_request_channel = bot.get_channel(music_request_channel_id)
-#                 if music_request_channel:
-#                     content = after.content if after.content else None
-#                     embeds = after.embeds if after.embeds else None
-#                     view = discord.ui.View.from_message(after) if after.components else None
-#                     
-#                     await music_request_channel.send(
-#                         content=content,
-#                         embeds=embeds,
-#                         view=view
-#                     )
-#                     parts = []
-#                     if content: parts.append("content")
-#                     if embeds: parts.append(f"{len(embeds)} embed(s)")
-#                     if view: parts.append("components")
-#                     print(f"[{timestamp}] Moved edited message with {', '.join(parts)} to #{music_request_channel.name}")
-#                 
-#                 await after.delete()
-#                 print(f"[{timestamp}] Deleted edited message {after.id}")
-#             except Exception as e:
-#                 print(f"[{timestamp}] ERROR: Failed to process edited message {after.id}: {e}")
+@bot.event
+async def on_message_edit(before, after):
+    # Music-request channel ID
+    music_request_channel_id = 1284207105548484780
+    
+    # Handle FlaviBot message edits (when embeds are added)
+    if after.author.bot and after.author.name == 'FlaviBot':
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{timestamp}] Detected FlaviBot MESSAGE EDIT...")
+        print(f"[{timestamp}] Edit details - Content: '{after.content[:50] if after.content else ''}', Embeds: {len(after.embeds)}, Components: {len(after.components)}")
+        
+        # Log what changed
+        if len(after.embeds) > len(before.embeds):
+            print(f"[{timestamp}] EMBED ADDED! Was {len(before.embeds)}, now {len(after.embeds)}")
+            for i, embed in enumerate(after.embeds):
+                print(f"[{timestamp}]   Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else ''}'")
 
 @bot.event
 async def on_message(message):
@@ -146,8 +123,10 @@ async def on_message(message):
             else:
                 print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
-            await message.delete()
-            print(f"[{timestamp}] Deleted original message {message.id}")
+            # Temporarily disable deletion for debugging
+            # await message.delete()
+            # print(f"[{timestamp}] Deleted original message {message.id}")
+            print(f"[{timestamp}] NOT deleting message for debugging - please screenshot the FlaviBot output")
         except Exception as e:
             print(f"[{timestamp}] ERROR: Failed to process message {message.id}: {e}")
         return
