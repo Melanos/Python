@@ -23,6 +23,49 @@ async def on_ready():
 processed_messages = set()
 
 @bot.event
+async def on_message_edit(before, after):
+    # Music-request channel ID
+    music_request_channel_id = 1284207105548484780
+    
+    # Handle FlaviBot message edits (when embeds are added)
+    if after.author.bot and after.author.name == 'FlaviBot':
+        # Skip if already processed
+        if after.id in processed_messages:
+            return
+        
+        # Only process if embed was added in this edit
+        if len(after.embeds) > len(before.embeds):
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"[{timestamp}] FlaviBot message edited - EMBED ADDED! Moving to music-request...")
+            print(f"[{timestamp}] Embeds: {len(after.embeds)}, Components: {len(after.components)}")
+            
+            try:
+                processed_messages.add(after.id)
+                
+                # Get music-request channel
+                music_request_channel = bot.get_channel(music_request_channel_id)
+                if music_request_channel:
+                    content = after.content if after.content else None
+                    embeds = after.embeds if after.embeds else []
+                    view = discord.ui.View.from_message(after) if after.components else None
+                    
+                    # Send the complete message
+                    await music_request_channel.send(
+                        content=content,
+                        embeds=embeds,
+                        view=view
+                    )
+                    print(f"[{timestamp}] Sent complete message with {len(embeds)} embed(s) and components")
+                
+                # Delete the original
+                await after.delete()
+                print(f"[{timestamp}] Deleted original message {after.id}")
+            except Exception as e:
+                print(f"[{timestamp}] ERROR: {e}")
+                import traceback
+                traceback.print_exc()
+
+@bot.event
 async def on_message(message):
     # Music-request channel ID
     music_request_channel_id = 1284207105548484780
