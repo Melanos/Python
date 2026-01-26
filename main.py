@@ -150,8 +150,9 @@ async def on_message(message):
             else:
                 print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
-            await message.delete()
-            print(f"[{timestamp}] Deleted original message {message.id}")
+            # Temporarily disable deletion for debugging
+            # await message.delete()
+            # print(f"[{timestamp}] Deleted original message {message.id}")
         except discord.Forbidden:
             print(f"[{timestamp}] ERROR: Missing 'Manage Messages' permission to delete message {message.id}")
         except Exception as e:
