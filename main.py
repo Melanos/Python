@@ -23,23 +23,6 @@ async def on_ready():
 processed_messages = set()
 
 @bot.event
-async def on_message_edit(before, after):
-    # Music-request channel ID
-    music_request_channel_id = 1284207105548484780
-    
-    # Handle FlaviBot message edits (when embeds are added)
-    if after.author.bot and after.author.name == 'FlaviBot':
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Detected FlaviBot MESSAGE EDIT...")
-        print(f"[{timestamp}] Edit details - Content: '{after.content[:50] if after.content else ''}', Embeds: {len(after.embeds)}, Components: {len(after.components)}")
-        
-        # Log what changed
-        if len(after.embeds) > len(before.embeds):
-            print(f"[{timestamp}] EMBED ADDED! Was {len(before.embeds)}, now {len(after.embeds)}")
-            for i, embed in enumerate(after.embeds):
-                print(f"[{timestamp}]   Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else ''}'")
-
-@bot.event
 async def on_message(message):
     # Music-request channel ID
     music_request_channel_id = 1284207105548484780
