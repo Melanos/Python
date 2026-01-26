@@ -91,13 +91,10 @@ async def on_message(message):
                 print(f"[{timestamp}] Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else None}'")
         
         try:
-            # If it's a slash command response, wait longer for embeds to load
+            # Wait 5 seconds for ALL FlaviBot messages (embeds are added via edits)
             import asyncio
-            if message.type == discord.MessageType.chat_input_command:
-                print(f"[{timestamp}] This is a slash command response, waiting 5 seconds for embeds...")
-                await asyncio.sleep(5)
-            else:
-                await asyncio.sleep(1.5)
+            print(f"[{timestamp}] Waiting 5 seconds for embeds to be added...")
+            await asyncio.sleep(5)
             
             # Fetch the message again to get the latest version with embeds
             try:
