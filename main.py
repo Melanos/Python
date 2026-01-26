@@ -5,6 +5,7 @@ import os
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.messages = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
@@ -17,6 +18,48 @@ async def on_ready():
         await channel.send('Bot is now online and monitoring messages for "/play" commands to delete.')
     else:
         print('ERROR: Could not find the specified channel')
+
+# Store message IDs temporarily to avoid duplicate processing
+processed_messages = set()
+
+@bot.event
+async def on_message_edit(before, after):
+    # Music-request channel ID
+    music_request_channel_id = 1284207105548484780
+    
+    # Handle FlaviBot message edits (when embeds are added)
+    if after.author.bot and after.author.name == 'FlaviBot' and after.id not in processed_messages:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{timestamp}] Detected FlaviBot MESSAGE EDIT...")
+        print(f"[{timestamp}] Edit details - Content: '{after.content}', Embeds: {len(after.embeds)}, Components: {len(after.components)}")
+        
+        # If the edited message now has embeds, move it
+        if after.embeds or after.content or after.components:
+            try:
+                processed_messages.add(after.id)
+                
+                # Get music-request channel
+                music_request_channel = bot.get_channel(music_request_channel_id)
+                if music_request_channel:
+                    content = after.content if after.content else None
+                    embeds = after.embeds if after.embeds else None
+                    view = discord.ui.View.from_message(after) if after.components else None
+                    
+                    await music_request_channel.send(
+                        content=content,
+                        embeds=embeds,
+                        view=view
+                    )
+                    parts = []
+                    if content: parts.append("content")
+                    if embeds: parts.append(f"{len(embeds)} embed(s)")
+                    if view: parts.append("components")
+                    print(f"[{timestamp}] Moved edited message with {', '.join(parts)} to #{music_request_channel.name}")
+                
+                await after.delete()
+                print(f"[{timestamp}] Deleted edited message {after.id}")
+            except Exception as e:
+                print(f"[{timestamp}] ERROR: Failed to process edited message {after.id}: {e}")
 
 @bot.event
 async def on_message(message):
