@@ -27,6 +27,11 @@ async def on_message(message):
     # Music-request channel ID
     music_request_channel_id = 1284207105548484780
     
+    # Debug: Log ALL messages to see if we're receiving them
+    if message.author.bot:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{timestamp}] Bot message from {message.author.name} detected")
+    
     # Move messages from the music bot (FlaviBot in this case)
     if message.author.bot and message.author.name == 'FlaviBot':
         # IGNORE slash command responses - they never have useful content
@@ -35,6 +40,13 @@ async def on_message(message):
             
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] Processing FlaviBot message - Embeds: {len(message.embeds)}, Components: {len(message.components)}")
+        
+        # Debug: Show what embeds we have
+        if message.embeds:
+            for i, embed in enumerate(message.embeds):
+                print(f"[{timestamp}] Embed {i}: title='{embed.title}', description='{embed.description[:50] if embed.description else 'None'}'")
+        else:
+            print(f"[{timestamp}] WARNING: No embeds found in message!")
         
         try:
             # Get music-request channel
@@ -45,8 +57,10 @@ async def on_message(message):
                 embeds = message.embeds if message.embeds else []
                 view = discord.ui.View.from_message(message) if message.components else None
                 
+                print(f"[{timestamp}] About to send - Content: {bool(content)}, Embeds: {len(embeds)}, View: {bool(view)}")
+                
                 # Send the message with all its components
-                await music_request_channel.send(
+                sent_msg = await music_request_channel.send(
                     content=content,
                     embeds=embeds,
                     view=view
@@ -56,13 +70,15 @@ async def on_message(message):
                 if content: parts.append("content")
                 if embeds: parts.append(f"{len(embeds)} embed(s)")
                 if view: parts.append("components")
-                print(f"[{timestamp}] Moved FlaviBot message with {', '.join(parts) if parts else 'empty content'} to #{music_request_channel.name}")
+                print(f"[{timestamp}] Sent message {sent_msg.id} with {', '.join(parts) if parts else 'empty content'}")
             
             # Delete original message
             await message.delete()
             print(f"[{timestamp}] Deleted original message {message.id}")
         except Exception as e:
             print(f"[{timestamp}] ERROR: Failed to process message {message.id}: {e}")
+            import traceback
+            traceback.print_exc()
         return
     
     # Ignore other bot messages
