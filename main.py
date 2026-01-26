@@ -32,18 +32,26 @@ async def on_message(message):
             music_request_channel = bot.get_channel(music_request_channel_id)
             if music_request_channel:
                 print(f"[{timestamp}] Found channel: #{music_request_channel.name}")
-                # Send message with content and/or embeds
-                if message.embeds:
-                    # Send embeds
-                    for embed in message.embeds:
-                        await music_request_channel.send(embed=embed)
-                    print(f"[{timestamp}] Sent {len(message.embeds)} embed(s) to #{music_request_channel.name}")
-                elif message.content:
-                    # Send text content
-                    await music_request_channel.send(message.content)
-                    print(f"[{timestamp}] Sent text content to #{music_request_channel.name}")
+                
+                # Build message components
+                content = message.content if message.content else None
+                embeds = message.embeds if message.embeds else None
+                view = discord.ui.View.from_message(message) if message.components else None
+                
+                # Send the message with all its components
+                if embeds or content or view:
+                    await music_request_channel.send(
+                        content=content,
+                        embeds=embeds,
+                        view=view
+                    )
+                    parts = []
+                    if content: parts.append("content")
+                    if embeds: parts.append(f"{len(embeds)} embed(s)")
+                    if view: parts.append("components")
+                    print(f"[{timestamp}] Sent message with {', '.join(parts)} to #{music_request_channel.name}")
                 else:
-                    print(f"[{timestamp}] WARNING: Message has no content or embeds")
+                    print(f"[{timestamp}] WARNING: Message has no content, embeds, or components")
             else:
                 print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
