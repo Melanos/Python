@@ -27,6 +27,7 @@ async def on_message(message):
     if message.author.bot and message.author.name == 'FlaviBot':
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] Detected FlaviBot message...")
+        print(f"[{timestamp}] Message details - Content: {bool(message.content)}, Embeds: {len(message.embeds)}, Components: {len(message.components)}, Attachments: {len(message.attachments)}")
         try:
             # Get music-request channel
             music_request_channel = bot.get_channel(music_request_channel_id)
@@ -37,21 +38,24 @@ async def on_message(message):
                 content = message.content if message.content else None
                 embeds = message.embeds if message.embeds else None
                 view = discord.ui.View.from_message(message) if message.components else None
+                files = [await att.to_file() for att in message.attachments] if message.attachments else None
                 
                 # Send the message with all its components
-                if embeds or content or view:
+                if embeds or content or view or files:
                     await music_request_channel.send(
                         content=content,
                         embeds=embeds,
-                        view=view
+                        view=view,
+                        files=files
                     )
                     parts = []
                     if content: parts.append("content")
                     if embeds: parts.append(f"{len(embeds)} embed(s)")
                     if view: parts.append("components")
+                    if files: parts.append(f"{len(files)} file(s)")
                     print(f"[{timestamp}] Sent message with {', '.join(parts)} to #{music_request_channel.name}")
                 else:
-                    print(f"[{timestamp}] WARNING: Message has no content, embeds, or components")
+                    print(f"[{timestamp}] WARNING: Message has no content, embeds, components, or attachments")
             else:
                 print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
