@@ -66,6 +66,14 @@ async def on_message(message):
     # Music-request channel ID
     music_request_channel_id = 1284207105548484780
     
+    # Temporary: Log ALL bot messages to identify the song info message
+    if message.author.bot:
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[{timestamp}] BOT MESSAGE: {message.author.name} - Content: '{message.content[:50] if message.content else ''}', Embeds: {len(message.embeds)}, Components: {len(message.components)}")
+        if message.embeds:
+            for embed in message.embeds:
+                print(f"[{timestamp}]   Embed title: '{embed.title}', description: '{embed.description[:50] if embed.description else ''}'")
+    
     # Move messages from the music bot (FlaviBot in this case)
     if message.author.bot and message.author.name == 'FlaviBot':
         # Skip if already processed via edit event
