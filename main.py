@@ -77,51 +77,40 @@ async def on_message(message):
     
     # Move messages from the music bot (FlaviBot in this case)
     if message.author.bot and message.author.name == 'FlaviBot':
-        # IGNORE slash command responses - they never have useful content
+        # IGNORE slash command responses
         if message.type == discord.MessageType.chat_input_command:
+            return
+        
+        # Skip if already processed via edit event
+        if message.id in processed_messages:
             return
             
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Processing FlaviBot message - Embeds: {len(message.embeds)}, Components: {len(message.components)}")
+        print(f"[{timestamp}] FlaviBot message received - Embeds: {len(message.embeds)}, Components: {len(message.components)}")
         
-        # Debug: Show what embeds we have
+        # If message already has embeds, move it immediately
         if message.embeds:
-            for i, embed in enumerate(message.embeds):
-                print(f"[{timestamp}] Embed {i}: title='{embed.title}', description='{embed.description[:50] if embed.description else 'None'}'")
-        else:
-            print(f"[{timestamp}] WARNING: No embeds found in message!")
-        
-        try:
-            # Get music-request channel
-            music_request_channel = bot.get_channel(music_request_channel_id)
-            if music_request_channel:
-                # Build message components
-                content = message.content if message.content else None
-                embeds = message.embeds if message.embeds else []
-                view = discord.ui.View.from_message(message) if message.components else None
-                
-                print(f"[{timestamp}] About to send - Content: {bool(content)}, Embeds: {len(embeds)}, View: {bool(view)}")
-                
-                # Send the message with all its components
-                sent_msg = await music_request_channel.send(
-                    content=content,
-                    embeds=embeds,
-                    view=view
-                )
-                
-                parts = []
-                if content: parts.append("content")
-                if embeds: parts.append(f"{len(embeds)} embed(s)")
-                if view: parts.append("components")
-                print(f"[{timestamp}] Sent message {sent_msg.id} with {', '.join(parts) if parts else 'empty content'}")
+            print(f"[{timestamp}] Message has embeds, moving immediately...")
+            processed_messages.add(message.id)
             
-            # Delete original message
-            await message.delete()
-            print(f"[{timestamp}] Deleted original message {message.id}")
-        except Exception as e:
-            print(f"[{timestamp}] ERROR: Failed to process message {message.id}: {e}")
-            import traceback
-            traceback.print_exc()
+            try:
+                music_request_channel = bot.get_channel(music_request_channel_id)
+                if music_request_channel:
+                    content = message.content if message.content else None
+                    embeds = message.embeds
+                    view = discord.ui.View.from_message(message) if message.components else None
+                    
+                    await music_request_channel.send(content=content, embeds=embeds, view=view)
+                    print(f"[{timestamp}] Sent message with {len(embeds)} embed(s)")
+                
+                await message.delete()
+                print(f"[{timestamp}] Deleted original")
+            except Exception as e:
+                print(f"[{timestamp}] ERROR: {e}")
+        else:
+            # No embeds yet, wait for edit event to add them
+            print(f"[{timestamp}] No embeds yet, waiting for edit event...")
+        
         return
     
     # Ignore other bot messages
