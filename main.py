@@ -26,26 +26,31 @@ async def on_message(message):
     # Move messages from the music bot (FlaviBot in this case)
     if message.author.bot and message.author.name == 'FlaviBot':
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Moving FlaviBot message...")
+        print(f"[{timestamp}] Detected FlaviBot message...")
         try:
             # Get music-request channel
             music_request_channel = bot.get_channel(music_request_channel_id)
             if music_request_channel:
+                print(f"[{timestamp}] Found channel: #{music_request_channel.name}")
                 # Send message with content and/or embeds
                 if message.embeds:
                     # Send embeds
                     for embed in message.embeds:
                         await music_request_channel.send(embed=embed)
-                    print(f"[{timestamp}] Moved FlaviBot message with {len(message.embeds)} embed(s) to #{music_request_channel.name}")
+                    print(f"[{timestamp}] Sent {len(message.embeds)} embed(s) to #{music_request_channel.name}")
                 elif message.content:
                     # Send text content
                     await music_request_channel.send(message.content)
-                    print(f"[{timestamp}] Moved FlaviBot message to #{music_request_channel.name}")
+                    print(f"[{timestamp}] Sent text content to #{music_request_channel.name}")
+                else:
+                    print(f"[{timestamp}] WARNING: Message has no content or embeds")
+            else:
+                print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
             await message.delete()
-            print(f"[{timestamp}] Successfully moved message {message.id}")
+            print(f"[{timestamp}] Deleted original message {message.id}")
         except Exception as e:
-            print(f"[{timestamp}] ERROR: Failed to move message {message.id}: {e}")
+            print(f"[{timestamp}] ERROR: Failed to process message {message.id}: {e}")
         return
     
     # Ignore other bot messages
@@ -55,7 +60,7 @@ async def on_message(message):
     # Move user messages containing /play to music-request channel
     if '/play' in message.content.lower():
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Attempting to move '/play' from {message.author} in #{message.channel}: {message.content[:100]}...")
+        print(f"[{timestamp}] Detected /play command from {message.author} in #{message.channel}: {message.content[:100]}...")
         
         try:
             # Get music-request channel
@@ -63,14 +68,16 @@ async def on_message(message):
             if music_request_channel:
                 # Send message content to music-request channel
                 await music_request_channel.send(message.content)
-                print(f"[{timestamp}] Moved /play message to #{music_request_channel.name}")
+                print(f"[{timestamp}] Sent /play message to #{music_request_channel.name}")
+            else:
+                print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
             await message.delete()
-            print(f"[{timestamp}] Successfully moved message {message.id}")
+            print(f"[{timestamp}] Deleted original message {message.id}")
         except discord.Forbidden:
             print(f"[{timestamp}] ERROR: Missing 'Manage Messages' permission to delete message {message.id}")
         except Exception as e:
-            print(f"[{timestamp}] ERROR: Failed to move message {message.id}: {e}")
+            print(f"[{timestamp}] ERROR: Failed to process message {message.id}: {e}")
     
     await bot.process_commands(message)
 
