@@ -27,15 +27,21 @@ async def on_message_edit(before, after):
     # Music-request channel ID
     music_request_channel_id = 1284207105548484780
     
+    # Log ALL edits for debugging
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    if after.author.bot:
+        print(f"[{timestamp}] Message edit detected from bot: {after.author.name}")
+        print(f"[{timestamp}] Before - Embeds: {len(before.embeds)}, After - Embeds: {len(after.embeds)}")
+    
     # Handle FlaviBot message edits (when embeds are added)
     if after.author.bot and after.author.name == 'FlaviBot':
         # Skip if already processed
         if after.id in processed_messages:
+            print(f"[{timestamp}] Already processed, skipping")
             return
         
         # Only process if embed was added in this edit
         if len(after.embeds) > len(before.embeds):
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"[{timestamp}] FlaviBot message edited - EMBED ADDED! Moving to music-request...")
             print(f"[{timestamp}] Embeds: {len(after.embeds)}, Components: {len(after.components)}")
             
@@ -64,6 +70,8 @@ async def on_message_edit(before, after):
                 print(f"[{timestamp}] ERROR: {e}")
                 import traceback
                 traceback.print_exc()
+        else:
+            print(f"[{timestamp}] FlaviBot edit detected but no new embeds added")
 
 @bot.event
 async def on_message(message):
