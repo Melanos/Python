@@ -28,7 +28,7 @@ async def on_ready():
                 "**`!slowmode <seconds>`** - Set channel slowmode (0-21600)\n"
                 "**`!lock`** - Lock channel (mods only)\n"
                 "**`!unlock`** - Unlock channel\n"
-                "**`!help`** - Show help message"
+                "**`!commands`** or **`!help`** - Show help message"
             ),
             inline=False
         )
@@ -41,6 +41,9 @@ async def on_ready():
         await channel.send(embed=embed)
     else:
         print('ERROR: Could not find the specified channel')
+
+# Remove Discord.py's default help command to use our custom one
+bot.remove_command('help')
 
 @bot.command(name='delete')
 @commands.has_permissions(manage_messages=True)
@@ -77,7 +80,7 @@ async def delete_error(ctx, error):
     elif isinstance(error, commands.BadArgument):
         await ctx.send("Please provide a valid number! Usage: `!delete 10`", delete_after=5)
 
-@bot.command(name='help')
+@bot.command(name='commands', aliases=['help', 'cmds'])
 async def help_command(ctx):
     """Show help message with all available commands"""
     embed = discord.Embed(
@@ -107,7 +110,7 @@ async def help_command(ctx):
     )
     embed.add_field(
         name="❓ Help",
-        value="**`!help`** - Show this message",
+        value="**`!commands`** or **`!help`** - Show this message",
         inline=False
     )
     embed.add_field(
