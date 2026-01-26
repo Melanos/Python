@@ -91,16 +91,23 @@ async def on_message(message):
                 print(f"[{timestamp}] Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else None}'")
         
         try:
-            # Small delay to let embeds load if they're being added asynchronously
+            # If it's a slash command response, wait longer for embeds to load
             import asyncio
-            await asyncio.sleep(1.5)
+            if message.type == discord.MessageType.chat_input_command:
+                print(f"[{timestamp}] This is a slash command response, waiting 5 seconds for embeds...")
+                await asyncio.sleep(5)
+            else:
+                await asyncio.sleep(1.5)
             
             # Fetch the message again to get the latest version with embeds
             try:
                 message = await message.channel.fetch_message(message.id)
-                print(f"[{timestamp}] After refresh - Embeds: {len(message.embeds)}, Components: {len(message.components)}, Content: '{message.content}'")
-            except:
-                pass
+                print(f"[{timestamp}] After refresh - Embeds: {len(message.embeds)}, Components: {len(message.components)}, Content: '{message.content[:50] if message.content else ''}'")
+                if message.embeds:
+                    for i, embed in enumerate(message.embeds):
+                        print(f"[{timestamp}] After refresh - Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else ''}'")
+            except Exception as fetch_error:
+                print(f"[{timestamp}] ERROR fetching message: {fetch_error}")
             
             processed_messages.add(message.id)
             
