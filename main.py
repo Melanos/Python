@@ -27,8 +27,20 @@ async def on_message(message):
     if message.author.bot and message.author.name == 'FlaviBot':
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         print(f"[{timestamp}] Detected FlaviBot message...")
-        print(f"[{timestamp}] Message details - Content: {bool(message.content)}, Embeds: {len(message.embeds)}, Components: {len(message.components)}, Attachments: {len(message.attachments)}")
+        print(f"[{timestamp}] Message details - Content: '{message.content}', Embeds: {len(message.embeds)}, Components: {len(message.components)}, Attachments: {len(message.attachments)}")
+        print(f"[{timestamp}] Message type: {message.type}, Reference: {message.reference}")
         try:
+            # Small delay to let embeds load if they're being added asynchronously
+            import asyncio
+            await asyncio.sleep(0.5)
+            
+            # Fetch the message again to get the latest version with embeds
+            try:
+                message = await message.channel.fetch_message(message.id)
+                print(f"[{timestamp}] After refresh - Embeds: {len(message.embeds)}, Components: {len(message.components)}")
+            except:
+                pass
+            
             # Get music-request channel
             music_request_channel = bot.get_channel(music_request_channel_id)
             if music_request_channel:
