@@ -51,7 +51,6 @@ async def delete_messages(ctx, amount: int = 10):
     """Delete a specified number of recent messages. Usage: !delete 10"""
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
-    /
     if amount < 1 or amount > 100:
         await ctx.send("Please specify a number between 1 and 100.", delete_after=5)
         return
