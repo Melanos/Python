@@ -97,7 +97,7 @@ async def on_message(message):
     # Move user messages containing /play to music-request channel
     if '/play' in message.content.lower():
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        print(f"[{timestamp}] Detected /play command from {message.author} in #{message.channel}: {message.content[:100]}...")
+        print(f"[{timestamp}] Moving /play command from {message.author} in #{message.channel}")
         
         try:
             # Get music-request channel
@@ -105,17 +105,14 @@ async def on_message(message):
             if music_request_channel:
                 # Send message content to music-request channel
                 await music_request_channel.send(message.content)
-                print(f"[{timestamp}] Sent /play message to #{music_request_channel.name}")
-            else:
-                print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
+                print(f"[{timestamp}] Moved /play message to #{music_request_channel.name}")
             
-            # Temporarily disable deletion for debugging
-            # await message.delete()
-            # print(f"[{timestamp}] Deleted original message {message.id}")
+            await message.delete()
+            print(f"[{timestamp}] Deleted original message {message.id}")
         except discord.Forbidden:
-            print(f"[{timestamp}] ERROR: Missing 'Manage Messages' permission to delete message {message.id}")
+            print(f"[{timestamp}] ERROR: Missing 'Manage Messages' permission")
         except Exception as e:
-            print(f"[{timestamp}] ERROR: Failed to process message {message.id}: {e}")
+            print(f"[{timestamp}] ERROR: {e}")
     
     await bot.process_commands(message)
 
