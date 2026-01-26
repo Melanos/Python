@@ -76,6 +76,12 @@ async def on_message(message):
         print(f"[{timestamp}] Detected FlaviBot message...")
         print(f"[{timestamp}] Message details - Content: '{message.content}', Embeds: {len(message.embeds)}, Components: {len(message.components)}, Attachments: {len(message.attachments)}")
         print(f"[{timestamp}] Message type: {message.type}, Reference: {message.reference}")
+        
+        # Log embed details if present
+        if message.embeds:
+            for i, embed in enumerate(message.embeds):
+                print(f"[{timestamp}] Embed {i}: title='{embed.title}', desc='{embed.description[:50] if embed.description else None}'")
+        
         try:
             # Small delay to let embeds load if they're being added asynchronously
             import asyncio
@@ -116,7 +122,8 @@ async def on_message(message):
                     if files: parts.append(f"{len(files)} file(s)")
                     print(f"[{timestamp}] Sent message with {', '.join(parts)} to #{music_request_channel.name}")
                 else:
-                    print(f"[{timestamp}] WARNING: Message has no content, embeds, components, or attachments")
+                    print(f"[{timestamp}] WARNING: Message has no content, embeds, components, or attachments - NOT MOVING")
+                    return  # Don't delete if nothing to move
             else:
                 print(f"[{timestamp}] ERROR: Could not find music-request channel with ID {music_request_channel_id}")
             
